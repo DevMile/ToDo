@@ -12,9 +12,14 @@ import UIKit
 class ToDoListVC: UITableViewController {
     
     var itemArray = ["Some cell", "Another text", "Third word"]
+    var defaults = UserDefaults.standard //initiating UserDefaults database
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        // showing saved itemArray from UserDefaults database in current VC
+        if let items = defaults.array(forKey: "toDoListArray") as? [String] {
+            itemArray = items
+        }
         
     }
     //MARK: - TableView Datasource Methods
@@ -44,6 +49,7 @@ class ToDoListVC: UITableViewController {
         let action = UIAlertAction(title: "Add Item", style: .default) { (success) in
             guard let itemName = textField.text else {return}
             self.itemArray.append(itemName)
+            self.defaults.set(self.itemArray, forKey: "toDoListArray") // saving itemArray in UserDefaults database
             self.tableView.reloadData()
         }
         alert.addTextField { (alertTextField) in
