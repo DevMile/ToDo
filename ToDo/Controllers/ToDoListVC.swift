@@ -12,28 +12,14 @@ import UIKit
 class ToDoListVC: UITableViewController {
     
     var itemArray = [Item]()
-    var defaults = UserDefaults.standard //initiating UserDefaults database
+    //PITANJE: - Zasto koristimo .first?.appending.. sta je tu array?
+    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        let item1 = Item()
-        item1.title = "Mile"
-        item1.done = true
-        itemArray.append(item1)
-        let item2 = Item()
-        item2.title = "Shiki"
-        item2.done = false
-        itemArray.append(item2)
-        let item3 = Item()
-        item3.title = "Mina"
-        item3.done = false
-        itemArray.append(item3)
-        
-        //showing saved itemArray from UserDefaults database in current VC
-        if let items = defaults.array(forKey: "toDoListArray") as? [Item] {
-            itemArray = items
-        }
+        print(dataFilePath)
+        loadData()
         
     }
     //MARK: - TableView Datasource Methods
@@ -51,8 +37,8 @@ class ToDoListVC: UITableViewController {
     //MARK: - TableView Delegate Methods
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true) //adds nice selection effect
-        itemArray[indexPath.row].done = !itemArray[indexPath.row].done //sets done state when selected to opposite to ones before
-        tableView.reloadData()
+        itemArray[indexPath.row].done = !itemArray[indexPath.row].done //set checkmark when selected to opposite to ones before
+        saveItems()
     }
     //MARK: - Add Items
     @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
@@ -62,8 +48,7 @@ class ToDoListVC: UITableViewController {
             let newItem = Item()
             newItem.title = textField.text!
             self.itemArray.append(newItem)
-            self.defaults.set(self.itemArray, forKey: "toDoListArray") // saving itemArray in UserDefaults database
-            self.tableView.reloadData()
+            self.saveItems()
         }
         alert.addTextField { (alertTextField) in
             alertTextField.placeholder = "Create new item"
@@ -73,6 +58,28 @@ class ToDoListVC: UITableViewController {
         present(alert, animated: true, completion: nil)
     }
     
+    //MARK: - Data Manipulation Methods
+    func saveItems() {
+        let encoder = PropertyListEncoder()
+        do {
+            let data = try encoder.encode(self.itemArray)
+            try data.write(to: self.dataFilePath!)
+        } catch {
+            print("Error while encoding item array \(error)")
+        }
+        self.tableView.reloadData()
+    }
+    
+    func loadData() {
+        if let data = try? Data(contentsOf: dataFilePath!) {
+            let decoder = PropertyListDecoder()
+            do {
+                itemArray = try decoder.decode([Item].self, from: data)
+            } catch {
+                print("Error decoding itemArray \(error)")
+            }
+        }
+    }
     
     
 }
