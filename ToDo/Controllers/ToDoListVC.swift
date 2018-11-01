@@ -13,7 +13,7 @@ import CoreData
 class ToDoListVC: UITableViewController {
     
     var itemArray = [Item]()
-    // initialize CoreData context for saving data
+    // initialize CoreData context for working with data
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     
     
@@ -21,8 +21,8 @@ class ToDoListVC: UITableViewController {
         super.viewDidLoad()
         //showing the path to files
         print(FileManager.default.urls(for: .documentDirectory, in: .userDomainMask))
-
-        //loadData()
+        
+        loadData()
         
     }
     //MARK: - TableView Datasource Methods
@@ -41,6 +41,8 @@ class ToDoListVC: UITableViewController {
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true) //adds nice selection effect
         itemArray[indexPath.row].done = !itemArray[indexPath.row].done //set checkmark when selected to opposite to ones before
+        //        context.delete(itemArray[indexPath.row])
+        //        itemArray.remove(at: indexPath.row)
         saveItems()
     }
     //MARK: - Add Items
@@ -72,16 +74,14 @@ class ToDoListVC: UITableViewController {
         self.tableView.reloadData()
     }
     
-//    func loadData() {
-//        if let data = try? Data(contentsOf: dataFilePath!) {
-//            let decoder = PropertyListDecoder()
-//            do {
-//                itemArray = try decoder.decode([Item].self, from: data)
-//            } catch {
-//                print("Error decoding itemArray \(error)")
-//            }
-//        }
-//    }
+    func loadData() {
+        let request: NSFetchRequest<Item> = Item.fetchRequest()
+        do {
+            itemArray = try context.fetch(request)
+        } catch {
+            print("Error fetching data \(error)")
+        }
+    }
     
     
 }
