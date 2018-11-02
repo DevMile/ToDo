@@ -73,16 +73,35 @@ class ToDoListVC: UITableViewController {
         }
         self.tableView.reloadData()
     }
-    
-    func loadData() {
-        let request: NSFetchRequest<Item> = Item.fetchRequest()
+    // providing default value for request
+    func loadData(with request: NSFetchRequest<Item> = Item.fetchRequest()) {
         do {
             itemArray = try context.fetch(request)
         } catch {
             print("Error fetching data \(error)")
         }
+        self.tableView.reloadData()
     }
-    
     
 }
 
+//MARK: - Search Bar Methods
+extension ToDoListVC: UISearchBarDelegate {
+    
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        let request: NSFetchRequest<Item> = Item.fetchRequest()
+        request.predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
+        request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
+        loadData(with: request)
+    }
+    
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        if searchBar.text?.count == 0 {
+            loadData()
+            DispatchQueue.main.async {
+                searchBar.resignFirstResponder()
+            }
+        }
+    }
+    
+}
