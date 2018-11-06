@@ -77,7 +77,7 @@ class ToDoListVC: UITableViewController {
         }
         self.tableView.reloadData()
     }
-    // providing default value for request ???
+    // providing default value for request
     func loadData(with request: NSFetchRequest<Item> = Item.fetchRequest(), predicate: NSPredicate? = nil) {
         let categoryPredicate = NSPredicate(format: "parentCategory.name MATCHES %@", selectedCategory!.name!)
         if let aditionalPredicate = predicate {
