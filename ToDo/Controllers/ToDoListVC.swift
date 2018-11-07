@@ -5,7 +5,6 @@
 //  Created by Milan Bojic on 10/30/18.
 //  Copyright © 2018 Milan Bojic. All rights reserved.
 
-// UITableViewController has all the delegates, protocols set by default
 
 import UIKit
 import RealmSwift
@@ -22,8 +21,8 @@ class ToDoListVC: UITableViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
     }
+    
     //MARK: - TableView Datasource Methods
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return todoItems?.count ?? 1
@@ -39,12 +38,22 @@ class ToDoListVC: UITableViewController {
         }
         return cell
     }
+    
     //MARK: - TableView Delegate Methods
-    //    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-    //        tableView.deselectRow(at: indexPath, animated: true) //adds nice selection effect
-    //        todoItems[indexPath.row].done = !todoItems[indexPath.row].done //set checkmark when selected to opposite to ones before
-    //
-    //    }
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
+        if let item = todoItems?[indexPath.row] {
+            do {
+                try realm.write {
+                    item.done = !item.done
+                    // realm.delete(item)
+                }
+            } catch {
+                print("Error saving done status \(error)")
+            }
+        }
+        tableView.reloadData()
+    }
     
     // MARK: - Add Items
     @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
@@ -56,6 +65,7 @@ class ToDoListVC: UITableViewController {
                     try self.realm.write {
                         let newItem = Item()
                         newItem.title = textField.text!
+                        newItem.dateCreated = Date()
                         currentCategory.items.append(newItem)
                     }
                 } catch {
@@ -74,29 +84,26 @@ class ToDoListVC: UITableViewController {
     
     // MARK: - Data Manipulation Methods
     func loadData() {
-        todoItems = selectedCategory?.items.sorted(byKeyPath: "title", ascending: true)
+        todoItems = selectedCategory?.items.sorted(byKeyPath: "dateCreated", ascending: true)
         tableView.reloadData()
     }
-    
 }
 
 // MARK: - Search Bar Methods
-//extension ToDoListVC: UISearchBarDelegate {
-//
-//    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-//        let request: NSFetchRequest<Item> = Item.fetchRequest()
-//        let predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
-//        request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
-//        loadData(with: request, predicate: predicate)
-//    }
-//
-//    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-//        if searchBar.text?.count == 0 {
-//            loadData()
-//            DispatchQueue.main.async {
-//                searchBar.resignFirstResponder()
-//            }
-//        }
-//    }
-//
-//}
+extension ToDoListVC: UISearchBarDelegate {
+
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        todoItems = todoItems?.filter("title CONTAINS[cd] %@", searchBar.text!).sorted(byKeyPath: "dateCreated", ascending: true)
+        tableView.reloadData()
+    }
+
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        if searchBar.text?.count == 0 {
+            loadData()
+            DispatchQueue.main.async {
+                searchBar.resignFirstResponder()
+            }
+        }
+    }
+
+}

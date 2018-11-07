@@ -75,5 +75,4 @@ class CategoryVC: UITableViewController {
         categories = realm.objects(Category.self)
         tableView.reloadData()
     }
-    
 }
