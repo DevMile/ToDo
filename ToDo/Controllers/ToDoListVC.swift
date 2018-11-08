@@ -9,7 +9,7 @@
 import UIKit
 import RealmSwift
 
-class ToDoListVC: UITableViewController {
+class ToDoListVC: SwipeCellVC {
     
     let realm = try! Realm()
     var todoItems: Results<Item>?
@@ -21,6 +21,7 @@ class ToDoListVC: UITableViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        tableView.rowHeight = 60.0
     }
     
     //MARK: - TableView Datasource Methods
@@ -29,7 +30,7 @@ class ToDoListVC: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "ToDoItemCell", for: indexPath)
+        let cell = super.tableView(tableView, cellForRowAt: indexPath)
         if let item = todoItems?[indexPath.row] {
             cell.textLabel?.text = item.title
             cell.accessoryType = item.done ? .checkmark : .none
@@ -46,7 +47,6 @@ class ToDoListVC: UITableViewController {
             do {
                 try realm.write {
                     item.done = !item.done
-                    // realm.delete(item)
                 }
             } catch {
                 print("Error saving done status \(error)")
@@ -86,6 +86,18 @@ class ToDoListVC: UITableViewController {
     func loadData() {
         todoItems = selectedCategory?.items.sorted(byKeyPath: "dateCreated", ascending: true)
         tableView.reloadData()
+    }
+    
+    override func updateModel(at indexPath: IndexPath) {
+        if let item = todoItems?[indexPath.row] {
+            do {
+                try realm.write {
+                    realm.delete(item)
+                }
+            } catch {
+                print("Error saving done status \(error)")
+            }
+        }
     }
 }
 
