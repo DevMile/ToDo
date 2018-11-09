@@ -10,6 +10,8 @@ import UIKit
 import RealmSwift
 import ChameleonFramework
 
+// TODO: - Add tap gesture recognizer for Add actions
+
 class CategoryVC: SwipeCellVC {
     
     let realm = try! Realm()
