@@ -8,11 +8,13 @@
 
 import UIKit
 import RealmSwift
+import ChameleonFramework
 
 class CategoryVC: SwipeCellVC {
     
     let realm = try! Realm()
     var categories: Results<Category>?
+    var colors = [FlatYellow(), FlatSkyBlue(), FlatLime(), FlatMint(), FlatPink(), FlatSand(), FlatGreen(), FlatOrange(), FlatPurple(), FlatPowderBlue()]
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -27,7 +29,12 @@ class CategoryVC: SwipeCellVC {
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = super.tableView(tableView, cellForRowAt: indexPath)
-        cell.textLabel?.text = categories?[indexPath.row].name ?? "No Category Added"
+        if let category = categories?[indexPath.row] {
+            guard let categoryColour = UIColor(hexString: category.cellColor) else {fatalError()}
+            cell.backgroundColor = categoryColour
+            cell.textLabel?.text = category.name
+            cell.textLabel?.textColor = ContrastColorOf(categoryColour, returnFlat: true)
+        }
         return cell
     }
     
@@ -50,6 +57,7 @@ class CategoryVC: SwipeCellVC {
         let action = UIAlertAction(title: "Add", style: .default) { (success) in
             let newCategory = Category()
             newCategory.name = textField.text!
+            newCategory.cellColor = self.colors.randomElement()?.hexValue() ?? "FEFFA0"
             self.save(category: newCategory)
         }
         alert.addTextField { (alertTextField) in

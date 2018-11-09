@@ -8,6 +8,7 @@
 
 import UIKit
 import RealmSwift
+import ChameleonFramework
 
 class ToDoListVC: SwipeCellVC {
     
@@ -18,10 +19,30 @@ class ToDoListVC: SwipeCellVC {
             loadData()
         }
     }
+    @IBOutlet weak var searchBar: UISearchBar!
     
     override func viewDidLoad() {
         super.viewDidLoad()
         tableView.rowHeight = 60.0
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        title = selectedCategory?.name
+        guard let colourHex = selectedCategory?.cellColor else {fatalError()}
+        updateNavBar(withHexColour: colourHex)
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        updateNavBar(withHexColour: "ECD432")
+    }
+    
+    func updateNavBar(withHexColour colourHex: String) {
+        guard let navBar = navigationController?.navigationBar else {fatalError()}
+        guard let barColour = UIColor(hexString: colourHex) else {fatalError()}
+        navBar.barTintColor = barColour
+        navBar.tintColor = ContrastColorOf(barColour, returnFlat: true)
+        navBar.largeTitleTextAttributes = [NSAttributedString.Key.foregroundColor : ContrastColorOf(barColour, returnFlat: true)]
+        searchBar.barTintColor = barColour
     }
     
     //MARK: - TableView Datasource Methods
@@ -34,6 +55,8 @@ class ToDoListVC: SwipeCellVC {
         if let item = todoItems?[indexPath.row] {
             cell.textLabel?.text = item.title
             cell.accessoryType = item.done ? .checkmark : .none
+            cell.backgroundColor = UIColor(hexString: item.colour)?.darken(byPercentage: CGFloat(indexPath.row) / CGFloat(todoItems!.count))
+            cell.textLabel?.textColor = ContrastColorOf(cell.backgroundColor!, returnFlat: true)
         } else {
             cell.textLabel?.text = "No Items Added"
         }
@@ -66,6 +89,7 @@ class ToDoListVC: SwipeCellVC {
                         let newItem = Item()
                         newItem.title = textField.text!
                         newItem.dateCreated = Date()
+                        newItem.colour = self.selectedCategory?.cellColor ?? "FEFFA0"
                         currentCategory.items.append(newItem)
                     }
                 } catch {
@@ -103,12 +127,12 @@ class ToDoListVC: SwipeCellVC {
 
 // MARK: - Search Bar Methods
 extension ToDoListVC: UISearchBarDelegate {
-
+    
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         todoItems = todoItems?.filter("title CONTAINS[cd] %@", searchBar.text!).sorted(byKeyPath: "dateCreated", ascending: true)
         tableView.reloadData()
     }
-
+    
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         if searchBar.text?.count == 0 {
             loadData()
@@ -117,5 +141,5 @@ extension ToDoListVC: UISearchBarDelegate {
             }
         }
     }
-
+    
 }
