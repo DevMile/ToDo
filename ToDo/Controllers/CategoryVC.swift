@@ -23,7 +23,7 @@ class CategoryVC: SwipeCellVC {
         loadCategories()
         tableView.rowHeight = 80.0
     }
-    
+   
     // MARK: - TableView Data Source
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return categories?.count ?? 1
@@ -67,9 +67,16 @@ class CategoryVC: SwipeCellVC {
             textField = alertTextField
         }
         alert.addAction(action)
-        present(alert, animated: true, completion: nil)
+        present(alert, animated: true) {
+            let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.dismissAlertController))
+            alert.view.superview?.subviews[0].addGestureRecognizer(tapGesture)
+        }
     }
     
+    @objc func dismissAlertController(){
+        self.dismiss(animated: true, completion: nil)
+    }
+   
     // MARK: - Data Manipulation Methods
     func save(category: Category) {
         do {
